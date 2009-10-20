@@ -46,7 +46,7 @@ module Gearman
     }
 
     # Map e.g. 'can_do' => 1
-    NUMS = COMMANDS.invert
+    COMMANDS_NUMERIC = COMMANDS.invert
 
     # Default job server port.
     DEFAULT_PORT = 4730
@@ -54,7 +54,7 @@ module Gearman
     class << self
 
       def encode_request(type_name, arg = nil)
-        type_num = NUMS[type_name.to_sym]
+        type_num = COMMANDS_NUMERIC[type_name.to_sym]
         raise InvalidArgsError, "Invalid type name '#{type_name}'" unless type_num
         arg = '' if not arg
         "\0REQ" + [type_num, arg.size].pack('NN') + arg
