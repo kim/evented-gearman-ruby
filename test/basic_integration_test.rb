@@ -43,7 +43,7 @@ class BasicIntegrationTest < Test::Unit::TestCase
     @client.run task
 
     assert_not_nil warning_given
-    assert true, failed
+    assert_equal true, failed
   end
 
   def test_chunked_response
@@ -56,5 +56,15 @@ class BasicIntegrationTest < Test::Unit::TestCase
     @client.run task
 
     assert_equal 5, chunks_received
+  end
+
+  def test_background
+    task = Gearman::Task.new('pingpong', 'background', :background => true, :poll_status_interval => 0.1)
+    task.on_complete {|d| flunk "on_complete should never be called for a background job!" }
+    status_received = false
+    task.on_status {|d| status_received = true }
+    @client.run task
+
+    assert_equal true, status_received
   end
 end
