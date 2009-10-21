@@ -2,7 +2,6 @@
 
 $:.unshift('../lib')
 require 'gearman'
-require 'gearman/testlib'
 require 'test/unit'
 
 class ProtocolTest < Test::Unit::TestCase
