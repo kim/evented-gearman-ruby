@@ -11,6 +11,9 @@ class BasicIntegrationTest < Test::Unit::TestCase
       worker = Gearman::Worker.new("localhost:4730")
       worker.add_ability("pingpong") {|data, job| "pong" }
       worker.add_ability("crash") {|data, job| raise Exception.new("BOOM!") }
+      worker.add_ability("chunked") do |data, job|
+        5.times {|i| job.send_partial("chunk #{i}") }
+      end
       worker.work
     end
 
@@ -41,5 +44,17 @@ class BasicIntegrationTest < Test::Unit::TestCase
 
     assert_not_nil warning_given
     assert true, failed
+  end
+
+  def test_chunked_response
+    task = Gearman::Task.new("chunked")
+    chunks_received = 0
+    task.on_data do |data|
+      assert_match /^chunk \d/, data
+      chunks_received += 1
+    end
+    @client.run task
+
+    assert_equal 5, chunks_received
   end
 end
