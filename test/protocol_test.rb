@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-$:.unshift('../lib')
+$:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'gearman'
 require 'test/unit'
 
@@ -32,10 +32,34 @@ class ProtocolTest < Test::Unit::TestCase
     assert_equal packet, Gearman::Protocol.response_packet(*packet)
   end
 
+  def test_decodes_work_complete
+    data     = "esta complet"
+    response = "\0RES" + [Gearman::Protocol::COMMANDS_NUMERIC[:work_complete], data.size].pack("NN") + [handle, data].join("\0")
+    assert_equal [:work_complete, handle, data], Gearman::Protocol.decode_response(response).first
+  end
+
+  def test_decodes_work_exception
+    data     = "{native perl exception object}"
+    response = "\0RES" + [Gearman::Protocol::COMMANDS_NUMERIC[:work_exception], data.size].pack("NN") + [handle, data].join("\0")
+    assert_equal [:work_exception, handle, data], Gearman::Protocol.decode_response(response).first
+  end
+
+  def test_decodes_work_warning
+    data     = "I warn you, dude"
+    response = "\0RES" + [Gearman::Protocol::COMMANDS_NUMERIC[:work_warning], data.size].pack("NN") + [handle, data].join("\0")
+    assert_equal [:work_warning, handle, data], Gearman::Protocol.decode_response(response).first
+  end
+
   def test_decodes_work_data
     data     = "foo"
     response = "\0RES" + [Gearman::Protocol::COMMANDS_NUMERIC[:work_data], data.size].pack("NN") + [handle, data].join("\0")
     assert_equal [:work_data, handle, data], Gearman::Protocol.decode_response(response).first
+  end
+
+  def test_decodes_error
+    data     = "error"
+    response = "\0RES" + [Gearman::Protocol::COMMANDS_NUMERIC[:error], data.size].pack("NN") + [handle, data].join("\0")
+    assert_equal [:error, handle, data], Gearman::Protocol.decode_response(response).first
   end
 
   def test_decodes_job_assign
