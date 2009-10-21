@@ -7,7 +7,7 @@ module Gearman
       @reactors = []
       @abilities = {}
 
-      @job_servers = Array.new(job_servers)
+      @job_servers = Array[*job_servers]
 
       @opts = opts
     end

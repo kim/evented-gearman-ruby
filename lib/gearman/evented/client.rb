@@ -14,6 +14,7 @@ module Gearman
       def receive_data(data)
         packets = Gearman::Protocol.decode_response(data)
         log "received #{packets.size} packet(s) at once"
+        log "packets: #{packets.inspect}"
         packets.each do |type, handle, *data|
           dispatch_packet(type, handle, *data)
         end

@@ -1,4 +1,5 @@
 require 'rubygems'
+require "ruby-debug"
 require '../lib/gearman'
 
 Gearman::Util.debug = true

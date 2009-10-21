@@ -6,7 +6,7 @@ module Gearman
       @reactors = []
       @jobs = {}
 
-      @job_servers = Array.new(job_servers)
+      @job_servers = Array[*job_servers]
 
       @uniq = opts.delete(:uniq)
       @opts = opts

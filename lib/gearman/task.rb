@@ -89,7 +89,7 @@ module Gearman
 
     def dispatch(event, *args)
       callback = instance_variable_get("@#{event}".to_sym)
-      callback.call(args) if callback
+      callback.call(*args) if callback
     end
 
     def hash
