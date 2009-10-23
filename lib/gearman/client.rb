@@ -13,7 +13,7 @@ module Gearman
     end
 
     # Run a Task or Taskset
-    def run(taskset)
+    def run(taskset, timeout = nil)
       EM.run do
         @taskset = Taskset.create(taskset)
 
@@ -23,6 +23,8 @@ module Gearman
           reactor.callback { create_job(@taskset.shift, reactor) }
           @reactors << reactor
         end
+
+        EM.add_timer(timeout) { EM.stop_event_loop } if timeout and timeout > 0
       end
     end
 
