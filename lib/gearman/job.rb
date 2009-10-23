@@ -26,6 +26,7 @@ module Gearman
       @client.send :work_data, "#{@handle}\0#{data}"
       self
     end
+    alias :send_data :send_partial
 
     ##
     # Send a warning explicitly
