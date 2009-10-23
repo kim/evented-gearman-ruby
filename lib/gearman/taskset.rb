@@ -15,6 +15,7 @@ module Gearman
       self
     end
     alias :<< :add
+    alias :add_task :add
 
     def each
       @tasks.each {|task| yield task }
