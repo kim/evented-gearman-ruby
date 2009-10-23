@@ -3,16 +3,6 @@ require File.dirname(__FILE__) + '/test_helper'
 class BasicIntegrationTest < Test::Unit::TestCase
 
   def setup
-    @pid = Process.fork do
-      worker = Gearman::Worker.new("localhost:4730")
-      worker.add_ability("pingpong") {|data, job| "pong" }
-      worker.add_ability("crash") {|data, job| raise Exception.new("BOOM!") }
-      worker.add_ability("chunked") do |data, job|
-        5.times {|i| job.send_partial("chunk #{i}") }
-      end
-      worker.work
-    end
-
     @client = Gearman::Client.new("localhost:4730")
   end
 
@@ -21,6 +11,12 @@ class BasicIntegrationTest < Test::Unit::TestCase
   end
 
   def test_ping_job
+    @pid = Process.fork do
+      worker = Gearman::Worker.new("localhost:4730")
+      worker.add_ability("pingpong") {|data, job| "pong" }
+      worker.work
+    end
+
     task = Gearman::Task.new("pingpong", "ping")
 
     task.on_complete do |response|
@@ -30,6 +26,12 @@ class BasicIntegrationTest < Test::Unit::TestCase
   end
 
   def test_exception_in_worker
+    @pid = Process.fork do
+      worker = Gearman::Worker.new("localhost:4730")
+      worker.add_ability("crash") {|data, job| raise Exception.new("BOOM!") }
+      worker.work
+    end
+
     task = Gearman::Task.new("crash", "doesntmatter")
 
     warning_given = nil
@@ -43,6 +45,14 @@ class BasicIntegrationTest < Test::Unit::TestCase
   end
 
   def test_chunked_response
+    @pid = Process.fork do
+      worker = Gearman::Worker.new("localhost:4730")
+      worker.add_ability("chunked") do |data, job|
+        5.times {|i| job.send_partial("chunk #{i}") }
+      end
+      worker.work
+    end
+
     task = Gearman::Task.new("chunked")
     chunks_received = 0
     task.on_data do |data|
@@ -55,7 +65,13 @@ class BasicIntegrationTest < Test::Unit::TestCase
   end
 
   def test_background
-    task = Gearman::Task.new('pingpong', 'background', :background => true, :poll_status_interval => 0.1)
+    @pid = Process.fork do
+      worker = Gearman::Worker.new("localhost:4730")
+      worker.add_ability("fireandforget") {|data, job| "this goes to /dev/null" }
+      worker.work
+    end
+
+    task = Gearman::Task.new('fireandforget', 'background', :background => true, :poll_status_interval => 0.1)
     task.on_complete {|d| flunk "on_complete should never be called for a background job!" }
     status_received = false
     task.on_status {|d| status_received = true }
