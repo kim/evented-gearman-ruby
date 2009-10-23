@@ -1,8 +1,4 @@
-#!/usr/bin/env ruby
-
-$:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
-require 'gearman'
-require 'test/unit'
+require File.dirname(__FILE__) + '/test_helper'
 
 class UtilTest < Test::Unit::TestCase
 
