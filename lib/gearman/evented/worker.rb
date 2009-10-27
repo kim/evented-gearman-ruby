@@ -27,7 +27,7 @@ module Gearman
         send :cant_do, name
       end
 
-      def grab_job(&cb_job_assign)
+      def grab_job
         log "Grab Job"
         send :grab_job_uniq
       end
