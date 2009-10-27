@@ -12,6 +12,7 @@ begin
     s.homepage = "http://github.com/kim/gearman-ruby"
     s.description = "Library for the Gearman distributed job system"
     s.authors = ["Kim Altintop"]
+    s.add_dependency 'eventmachine', '>= 0.12.8'
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
