@@ -61,8 +61,8 @@ module Gearman
         send_data(Gearman::Protocol.encode_request(command, data))
       end
 
-      def log(msg)
-        Gearman::Util.log msg
+      def log(msg, force = false)
+        Gearman::Util.log(msg, force)
       end
 
       def to_s

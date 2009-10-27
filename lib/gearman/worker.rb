@@ -35,9 +35,5 @@ module Gearman
       end
     end
 
-    private
-      def log(msg)
-        Gearman::Util.log msg
-      end
   end
 end

@@ -42,8 +42,5 @@ module Gearman
         reactor.submit_job(task) {|handle| create_job(@taskset.shift) }
       end
 
-      def log(msg)
-        Gearman::Util.log msg
-      end
   end
 end
