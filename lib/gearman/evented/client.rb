@@ -71,6 +71,7 @@ module Gearman
 
         if :work_fail == type && task.should_retry?
           task.dispatch(:on_retry, task.retries_done)
+          @assigned_jobs.delete(handle)
           submit_job(task)
           return
         end

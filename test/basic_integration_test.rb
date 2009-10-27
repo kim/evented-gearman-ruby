@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/test_helper'
 
+puts "WARNING: #{File.basename(__FILE__)} needs a gearmand to be running at localhost:4730, otherwise it will just hang!"
 class BasicIntegrationTest < Test::Unit::TestCase
 
   def setup
@@ -27,11 +28,11 @@ class BasicIntegrationTest < Test::Unit::TestCase
     warning_given = nil
     failed = false
 
+    task = Gearman::Task.new("crash", "doesntmatter")
+
     EM.run do
       @worker.add_ability("crash") {|data, job| raise Exception.new("BOOM!") }
       @worker.work
-
-      task = Gearman::Task.new("crash", "doesntmatter")
 
       task.on_warning {|warning| warning_given = warning }
       task.on_fail { failed = true}
@@ -40,6 +41,28 @@ class BasicIntegrationTest < Test::Unit::TestCase
 
     assert_not_nil warning_given
     assert_equal true, failed
+    assert_equal 0, task.retries_done
+  end
+
+  def test_should_be_able_to_retry_on_worker_exception
+    retry_callback_called = false
+    fail_count = 0
+
+    # Gearman::Util.debug = true
+    task = Gearman::Task.new("crash", "doesntmatter", :retries => 1)
+
+    EM.run do
+      @worker.add_ability("crash") {|data, job| raise Exception.new("BOOM!") }
+      @worker.work
+
+      task.on_retry {|i| retry_callback_called = true }
+      task.on_fail { fail_count += 1 }
+      @client.run task
+    end
+
+    assert_equal true, retry_callback_called
+    assert_equal 1, task.retries_done
+    assert_equal 1, fail_count
   end
 
   def test_chunked_response
