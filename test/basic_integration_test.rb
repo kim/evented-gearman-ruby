@@ -1,11 +1,15 @@
 require File.dirname(__FILE__) + '/test_helper'
 
-puts "WARNING: #{File.basename(__FILE__)} needs a gearmand to be running at localhost:4730, otherwise it will just hang!"
 class BasicIntegrationTest < Test::Unit::TestCase
 
   def setup
+    system 'gearmand -d -p 4730'
     @client = Gearman::Client.new("localhost:4730")
     @worker = Gearman::Worker.new("localhost:4730")
+  end
+
+  def teardown
+    system 'killall gearmand'
   end
 
   def test_ping_job

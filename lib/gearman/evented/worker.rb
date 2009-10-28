@@ -8,7 +8,7 @@ module Gearman
         send :set_client_id, client_id
         super
 
-        @abilities = @opts.delete(:abilities) || []
+        @abilities ||= @opts.delete(:abilities) || []
         @abilities.each do |ability, args|
           announce_ability(ability, args[:timeout])
         end
