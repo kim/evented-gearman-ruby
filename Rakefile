@@ -38,4 +38,4 @@ Rcov::RcovTask.new do |t|
   t.verbose = true
 end
 
-task :default => :rcov
+task :default => :test
