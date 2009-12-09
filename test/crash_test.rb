@@ -4,6 +4,7 @@ require File.dirname(__FILE__) + '/test_helper'
 class CrashTest < Test::Unit::TestCase
 
   def setup
+    teardown_gearmands
     Thread.new { EM.run } unless EM.reactor_running?
   end
 
