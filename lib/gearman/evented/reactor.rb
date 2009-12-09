@@ -41,7 +41,7 @@ module Gearman
       def unbind
         log "disconnected from #{@host}:#{@port}"
         @connected = false
-        EM.next_tick { reconnect } unless @reconnect
+        EM.next_tick { reconnect }
       end
 
       def disconnect
@@ -55,6 +55,7 @@ module Gearman
           EM.add_timer(@opts[:reconnect_sec] || 30) { reconnect }
           return
         elsif !@reconnect
+          log "forced disconnect, aborting reconnect attempt"
           return
         else
           @reconnecting = true

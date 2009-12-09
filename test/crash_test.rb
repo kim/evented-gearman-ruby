@@ -1,6 +1,11 @@
 require File.dirname(__FILE__) + '/test_helper'
 
+# Gearman::Util.debug = true
 class CrashTest < Test::Unit::TestCase
+
+  def setup
+    Thread.new { EM.run } unless EM.reactor_running?
+  end
 
   def teardown
     teardown_gearmands
@@ -12,16 +17,14 @@ class CrashTest < Test::Unit::TestCase
     worker.add_ability("foo") {|data, job| "noop!" }
 
     response = nil
-    EM.run do
-      worker.work
-      stop_gearmand
-      start_gearmand
 
-      task = Gearman::Task.new("foo", "ping")
+    worker.work
+    stop_gearmand
+    start_gearmand
 
-      task.on_complete {|res| response = res }
-      Gearman::Client.new("localhost:4730").run task
-    end
+    task = Gearman::Task.new("foo", "ping")
+    task.on_complete {|res| response = res }
+    Gearman::Client.new("localhost:4730").run task
 
     assert_equal "noop!", response
     stop_gearmand
@@ -34,12 +37,10 @@ class CrashTest < Test::Unit::TestCase
     worker.add_ability("foo") {|data, job| "noop!" }
 
     response = nil
-    EM.run do
-      worker.work
-      task = Gearman::Task.new("foo", "ping")
-      task.on_complete {|res| response = res }
-      Gearman::Client.new(["localhost:4730", "localhost:4731"]).run task
-    end
+    worker.work
+    task = Gearman::Task.new("foo", "ping")
+    task.on_complete {|res| response = res }
+    Gearman::Client.new(["localhost:4730", "localhost:4731"]).run task
 
     assert_equal "noop!", response
     stop_gearmand 4731
@@ -53,15 +54,13 @@ class CrashTest < Test::Unit::TestCase
     worker.add_ability("foo") {|data, job| "noop!" }
 
     response = nil
-    EM.run do
-      worker.work
+    worker.work
 
-      stop_gearmand 4730
+    stop_gearmand 4730
 
-      task = Gearman::Task.new("foo", "ping")
-      task.on_complete {|res| response = res }
-      Gearman::Client.new(["localhost:4730", "localhost:4731"]).run task
-    end
+    task = Gearman::Task.new("foo", "ping")
+    task.on_complete {|res| response = res }
+    Gearman::Client.new(["localhost:4730", "localhost:4731"]).run task
 
     assert_equal "noop!", response
     stop_gearmand 4731
