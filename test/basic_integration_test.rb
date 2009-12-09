@@ -107,6 +107,8 @@ class BasicIntegrationTest < Test::Unit::TestCase
     task1.on_complete {|d| task1_complete = true}
     @client.run task1, nil, true
 
+    assert_equal false, task1_complete
+
     task2 = Gearman::Task.new("foo", 2)
     task2.on_complete {|d| task2_complete = true}
     @client.run task2, nil, true
