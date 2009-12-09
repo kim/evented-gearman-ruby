@@ -3,8 +3,9 @@ require 'gearman'
 require 'test/unit'
 require 'mocha'
 
-def start_gearmand(port = 4730)
-  system "gearmand -d -p #{port} --pid-file=#{gearmand_pidfile(port)}"
+def start_gearmand(port = 4730, debug = false)
+  log = debug ? "-l /tmp/gearmand.log -vvv" : ""
+  system "gearmand -d -p #{port} --pid-file=#{gearmand_pidfile(port)} #{log}"
   gearmand_pid(port)
 end
 
