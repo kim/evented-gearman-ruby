@@ -1,25 +1,28 @@
 require File.dirname(__FILE__) + '/test_helper'
 
-puts "WARNING: #{File.basename(__FILE__)} needs a gearmand to be running at localhost:4730, otherwise it will just hang!"
 class BasicIntegrationTest < Test::Unit::TestCase
 
   def setup
+    # system 'gearmand -d -p 4730'
     @client = Gearman::Client.new("localhost:4730")
     @worker = Gearman::Worker.new("localhost:4730")
+    Thread.new { EM.run } unless EM.reactor_running?
+  end
+
+  def teardown
+    # system 'killall gearmand'
   end
 
   def test_ping_job
     response = nil
 
-    EM.run do
-      @worker.add_ability("pingpong") {|data, job| "pong" }
-      @worker.work
+    @worker.add_ability("pingpong") {|data, job| "pong" }
+    @worker.work
 
-      task = Gearman::Task.new("pingpong", "ping")
+    task = Gearman::Task.new("pingpong", "ping")
 
-      task.on_complete {|res| response = res }
-      @client.run task
-    end
+    task.on_complete {|res| response = res }
+    @client.run task
 
     assert_equal "pong", response
   end
@@ -30,14 +33,12 @@ class BasicIntegrationTest < Test::Unit::TestCase
 
     task = Gearman::Task.new("crash", "doesntmatter")
 
-    EM.run do
-      @worker.add_ability("crash") {|data, job| raise Exception.new("BOOM!") }
-      @worker.work
+    @worker.add_ability("crash") {|data, job| raise Exception.new("BOOM!") }
+    @worker.work
 
-      task.on_warning {|warning| warning_given = warning }
-      task.on_fail { failed = true}
-      @client.run task
-    end
+    task.on_warning {|warning| warning_given = warning }
+    task.on_fail { failed = true}
+    @client.run task
 
     assert_not_nil warning_given
     assert_equal true, failed
@@ -51,14 +52,12 @@ class BasicIntegrationTest < Test::Unit::TestCase
     # Gearman::Util.debug = true
     task = Gearman::Task.new("crash", "doesntmatter", :retries => 1)
 
-    EM.run do
-      @worker.add_ability("crash") {|data, job| raise Exception.new("BOOM!") }
-      @worker.work
+    @worker.add_ability("crash") {|data, job| raise Exception.new("BOOM!") }
+    @worker.work
 
-      task.on_retry {|i| retry_callback_called = true }
-      task.on_fail { fail_count += 1 }
-      @client.run task
-    end
+    task.on_retry {|i| retry_callback_called = true }
+    task.on_fail { fail_count += 1 }
+    @client.run task
 
     assert_equal true, retry_callback_called
     assert_equal 1, task.retries_done
@@ -68,19 +67,17 @@ class BasicIntegrationTest < Test::Unit::TestCase
   def test_chunked_response
     chunks_received = 0
 
-    EM.run do
-      @worker.add_ability("chunked") do |data, job|
-        5.times {|i| job.send_partial("chunk #{i}") }
-      end
-      @worker.work
-
-      task = Gearman::Task.new("chunked")
-      task.on_data do |data|
-        assert_match /^chunk \d/, data
-        chunks_received += 1
-      end
-      @client.run task
+    @worker.add_ability("chunked") do |data, job|
+      5.times {|i| job.send_partial("chunk #{i}") }
     end
+    @worker.work
+
+    task = Gearman::Task.new("chunked")
+    task.on_data do |data|
+      assert_match /^chunk \d/, data
+      chunks_received += 1
+    end
+    @client.run task
 
     assert_equal 5, chunks_received
   end
@@ -88,15 +85,13 @@ class BasicIntegrationTest < Test::Unit::TestCase
   def test_background
     status_received = false
 
-    EM.run do
-      @worker.add_ability("fireandforget") {|data, job| "this goes to /dev/null" }
-      @worker.work
+    @worker.add_ability("fireandforget") {|data, job| "this goes to /dev/null" }
+    @worker.work
 
-      task = Gearman::Task.new('fireandforget', 'background', :background => true, :poll_status_interval => 0.1)
-      task.on_complete {|d| flunk "on_complete should never be called for a background job!" }
-      task.on_status {|d| status_received = true }
-      @client.run task
-    end
+    task = Gearman::Task.new('fireandforget', 'background', :background => true, :poll_status_interval => 0.1)
+    task.on_complete {|d| flunk "on_complete should never be called for a background job!" }
+    task.on_status {|d| status_received = true }
+    @client.run task
 
     assert_equal true, status_received
   end

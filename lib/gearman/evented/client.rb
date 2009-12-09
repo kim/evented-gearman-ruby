@@ -83,7 +83,7 @@ module Gearman
         end
 
         @assigned_jobs.delete(handle) if [:work_complete, :work_fail].include?(type)
-        EM.stop if @assigned_jobs.empty?
+        disconnect if @assigned_jobs.empty?
       end
     end
 

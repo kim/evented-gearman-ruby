@@ -14,6 +14,8 @@ module Gearman
 
     # Run a Task or Taskset
     def run(taskset, timeout = nil)
+      timeout ||= 0
+      use_em_stop = EM.reactor_running?
       EM.run do
         @taskset = Taskset.create(taskset)
 
@@ -24,7 +26,22 @@ module Gearman
           @reactors << reactor
         end
 
-        EM.add_timer(timeout) { EM.stop_event_loop } if timeout and timeout > 0
+        if timeout > 0
+          if use_em_stop
+            EM.add_timer(timeout) { EM.stop }
+          else
+            sleep timeout
+          end
+        else
+          Thread.new do
+            loop do
+              sleep 0.1
+              live = 0
+              @reactors.each {|reactor| live += 1 if reactor.connected? }
+              break if live == 0
+            end
+          end.join
+        end
       end
     end
 
