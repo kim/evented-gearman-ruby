@@ -13,15 +13,28 @@ module Gearman
     end
 
     # Run a Task or Taskset
-    def run(taskset, timeout = nil)
+    def run(taskset, timeout = nil, async = false)
       timeout ||= 0
       use_em_stop = EM.reactor_running?
       EM.run do
-        @taskset = Taskset.create(taskset)
+        @taskset ||= Taskset.new
+        @taskset += Taskset.create(taskset)
 
-        @job_servers.each do |hostport|
+        job_servers = @job_servers.dup
+        @reactors.each do |reactor|
+          unless reactor.connected?
+            reactor.reconnect true
+            reactor.keep_connected = async
+            reactor.callback { create_job(@taskset.shift, reactor) }
+            job_servers.delete reactor.to_s
+          else
+            create_job(@taskset.shift, reactor)
+          end
+        end
+        job_servers.each do |hostport|
           host, port = hostport.split(":")
           reactor = Gearman::Evented::ClientReactor.connect(host, port, @opts)
+          reactor.keep_connected = async
           reactor.callback { create_job(@taskset.shift, reactor) }
           @reactors << reactor
         end
@@ -32,7 +45,7 @@ module Gearman
           else
             sleep timeout
           end
-        else
+        elsif !async
           Thread.new do
             loop do
               sleep 0.1
@@ -52,11 +65,15 @@ module Gearman
         reactor ||= @reactors[rand(@reactors.size)]
         unless reactor.connected?
           log "create_job: server #{reactor} not connected"
-          create_job(task)
+          EM.next_tick { create_job(task) }
           return
         end
 
         reactor.submit_job(task) {|handle| create_job(@taskset.shift) }
+      end
+
+      def log(msg)
+        Gearman::Util.log(msg)
       end
 
   end

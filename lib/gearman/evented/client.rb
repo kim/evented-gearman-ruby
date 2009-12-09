@@ -4,6 +4,14 @@ module Gearman
     module ClientReactor
       include Gearman::Evented::Reactor
 
+      def keep_connected
+        @keep_connected ||= (@opts[:keep_connected] || false)
+      end
+
+      def keep_connected=(keep)
+        @keep_connected = keep
+      end
+
       def connection_completed
         @cbs_job_created ||= []
         @pending_jobs    = []
@@ -83,7 +91,7 @@ module Gearman
         end
 
         @assigned_jobs.delete(handle) if [:work_complete, :work_fail].include?(type)
-        disconnect if @assigned_jobs.empty?
+        disconnect if @assigned_jobs.empty? && !keep_connected
       end
     end
 

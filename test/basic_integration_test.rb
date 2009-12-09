@@ -95,4 +95,27 @@ class BasicIntegrationTest < Test::Unit::TestCase
 
     assert_equal true, status_received
   end
+
+  def test_non_blocking_run
+    @worker.add_ability("foo") {|data, job| "foo: #{data}" }
+    @worker.work
+
+    task1_complete = false
+    task2_complete = false
+
+    task1 = Gearman::Task.new("foo", 1)
+    task1.on_complete {|d| task1_complete = true}
+    @client.run task1, nil, true
+
+    task2 = Gearman::Task.new("foo", 2)
+    task2.on_complete {|d| task2_complete = true}
+    @client.run task2, nil, true
+
+    Thread.new do
+      sleep 1
+    end.join
+
+    assert_equal true, task1_complete
+    assert_equal true, task2_complete
+  end
 end
