@@ -111,9 +111,7 @@ class BasicIntegrationTest < Test::Unit::TestCase
     task2.on_complete {|d| task2_complete = true}
     @client.run task2, nil, true
 
-    Thread.new do
-      sleep 1
-    end.join
+    Thread.new { sleep 0.1 }.join
 
     assert_equal true, task1_complete
     assert_equal true, task2_complete
