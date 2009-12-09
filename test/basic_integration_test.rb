@@ -3,14 +3,14 @@ require File.dirname(__FILE__) + '/test_helper'
 class BasicIntegrationTest < Test::Unit::TestCase
 
   def setup
-    # system 'gearmand -d -p 4730'
+    start_gearmand
     @client = Gearman::Client.new("localhost:4730")
     @worker = Gearman::Worker.new("localhost:4730")
     Thread.new { EM.run } unless EM.reactor_running?
   end
 
   def teardown
-    # system 'killall gearmand'
+    stop_gearmand
   end
 
   def test_ping_job
