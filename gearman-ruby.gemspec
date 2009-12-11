@@ -4,12 +4,12 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{kim-gearman-ruby}
-  s.version = "1.3.1"
+  s.name = %q{gearman-ruby}
+  s.version = "2.0.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Kim Altintop"]
-  s.date = %q{2009-10-27}
+  s.date = %q{2009-12-11}
   s.description = %q{Library for the Gearman distributed job system}
   s.email = %q{kim.altintop@gmail.com}
   s.extra_rdoc_files = [
@@ -55,7 +55,7 @@ Gem::Specification.new do |s|
      "lib/gearman/util.rb",
      "lib/gearman/worker.rb",
      "test/basic_integration_test.rb",
-     "test/client_test.rb",
+     "test/crash_test.rb",
      "test/job_test.rb",
      "test/protocol_test.rb",
      "test/test_helper.rb",
@@ -69,7 +69,7 @@ Gem::Specification.new do |s|
   s.summary = %q{Library for the Gearman distributed job system}
   s.test_files = [
     "test/basic_integration_test.rb",
-     "test/client_test.rb",
+     "test/crash_test.rb",
      "test/job_test.rb",
      "test/protocol_test.rb",
      "test/test_helper.rb",
