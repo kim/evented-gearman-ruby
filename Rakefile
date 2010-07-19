@@ -6,10 +6,10 @@ require 'rcov/rcovtask'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |s|
-    s.name = "gearman-ruby"
-    s.summary = "Library for the Gearman distributed job system"
+    s.name = "evented-gearman-ruby"
+    s.summary = "eventmachine-based library for the Gearman distributed job system"
     s.email = "kim.altintop@gmail.com"
-    s.homepage = "http://github.com/kim/gearman-ruby"
+    s.homepage = "http://github.com/kim/evented-gearman-ruby"
     s.description = "Library for the Gearman distributed job system"
     s.authors = ["Kim Altintop"]
     s.add_dependency 'eventmachine', '>= 0.12.8'

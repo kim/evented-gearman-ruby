@@ -1,9 +1,4 @@
-gearman-ruby
+evented-gearman-ruby
 ===============
 
-Library for the Gearman distributed job system
-
-COPYRIGHT
-=========
-
-Copyright (c) 2009 XING AG. See LICENSE for details.
+eventmachine-based library for the Gearman distributed job system
